@@ -6,33 +6,69 @@ export interface SEOInput {
   targetCountry: string;
   videoType: string;
   preferredUploadTime: string;
+  isShortsMode: boolean;
 }
 
-export interface HashtagScore {
-  tag: string;
-  score: number; // 0-100
-  impact: string; // e.g., "High Viral Potential", "Steady Growth", "Niche Authority"
+export interface VideoChapter {
+  timestamp: string;
+  title: string;
+}
+
+export interface AlgorithmInsight {
+  trend: string;
+  impact: 'High' | 'Critical';
+  hack: string;
+}
+
+export interface LaunchStep {
+  timeframe: string;
+  action: string;
+  priority: 'High' | 'Medium' | 'Low';
 }
 
 export interface SEOPackage {
-  title: string;
+  // Dual Language Strategy: English & Roman Sindhi
+  titleEnglish: string;
   titleRoman: string;
-  descriptionEnglish: string;
-  descriptionNative: string;
+  
+  descriptionEnglish: string; // User specifically requested description in English
   descriptionRoman: string;
-  hashtags: string[];
-  hashtagScores: HashtagScore[];
+  
   tagsEnglish: string[];
   tagsRoman: string[];
-  thumbnailTextNative: string[];
+  
+  hashtagsEnglish: string[];
+  hashtagsRoman: string[];
+
+  videoChapters: VideoChapter[];
+  lsiKeywords: string[];
+  
+  // High-Retention Hooks
+  retentionHooksEnglish: string[];
+  retentionHooksRoman: string[];
+  
+  metadataRecommendations: {
+    category: string;
+    location: string;
+    recordingDate: string;
+    license: string;
+  };
+  
+  thumbnailTextEnglish: string[];
   thumbnailTextRoman: string[];
   thumbnailAIPrompt: string;
-  hashtagOptimization: {
-    longTailHashtags: string[];
-    nicheHashtags: string[];
-    redundancyReport: string;
-    suggestedReplacements: string[];
+  
+  communityPostEnglish: string;
+  communityPostRoman: string;
+  
+  dailyAlgoInsights: AlgorithmInsight[];
+  launchRoadmap: LaunchStep[];
+  
+  outroStrategy: {
+    endScreen: string;
+    cards: string;
   };
+  
   algorithmBoostStrategy: {
     bestUploadTime: string;
     abTesting: string;

@@ -5,6 +5,7 @@ import { SEOInput } from '../types';
 interface InputFormProps {
   input: SEOInput;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  onToggleShorts: (enabled: boolean) => void;
   onSubmit: (e: React.FormEvent) => void;
   onGenerateThumbnail?: () => void;
   loading: boolean;
@@ -15,6 +16,7 @@ interface InputFormProps {
 const InputForm: React.FC<InputFormProps> = ({ 
   input, 
   onChange, 
+  onToggleShorts,
   onSubmit, 
   onGenerateThumbnail, 
   loading, 
@@ -23,150 +25,174 @@ const InputForm: React.FC<InputFormProps> = ({
 }) => {
   
   const getPlaceholders = () => {
-    switch (input.userLanguage.toLowerCase()) {
-      case 'sindhi':
-        return {
-          channel: 'مثال: سنڌي ويلاگز HD',
-          topic: 'پنهنجي وڊيو بابت ٻڌايو (مثال: سنڌ جي تاريخ، سنڌي کاڌا وغيره)',
-          language: 'Sindhi (سنڌي)',
-          country: 'Pakistan (پاڪستان)',
-          time: 'مثال: شام 8 وڳي'
-        };
-      case 'urdu':
-        return {
-          channel: 'مثال: اردو نیوز پرو',
-          topic: 'اپنی ویڈیو کا عنوان یہاں لکھیں (جیسے: پاکستان کی سیاست، معلوماتی ویڈیو)',
-          language: 'Urdu (اردو)',
-          country: 'Pakistan (پاکستان)',
-          time: 'مثال: رات 9 بجے'
-        };
-      default:
-        return {
-          channel: 'e.g. Global Tech HD',
-          topic: 'Describe your topic (e.g. AI Trends, Space Travel, etc.)',
-          language: 'e.g. English, Arabic',
-          country: 'e.g. USA, UK, UAE',
-          time: 'e.g. 7:00 PM'
-        };
+    const lang = input.userLanguage.toLowerCase();
+    
+    if (lang.includes('roman') || lang.includes('latin')) {
+      return {
+        channel: 'Sindh TV News / @SindhTVNewsOfficial',
+        topic: 'Asif Zardari jo Sindh assembly mein khitab...',
+        language: 'Roman Sindhi',
+        country: 'Pakistan / UAE',
+        time: '8:00 PM Prime Time'
+      };
     }
+    
+    if (lang.includes('sindhi') || lang.includes('سنڌي')) {
+      return {
+        channel: 'سنڌ ٽي وي نيوز (Sindh TV News)',
+        topic: 'سنڌ اسيمبلي ۾ وڏي وزير جو خطاب ۽ بجيٽ تي بحث...',
+        language: 'Sindhi (سنڌي)',
+        country: 'پاڪستان (Pakistan)',
+        time: 'شام 7 کان 9 وڳي'
+      };
+    }
+
+    if (lang.includes('urdu') || lang.includes('اردو')) {
+      return {
+        channel: 'Geo News / ARY News Style',
+        topic: 'پاکستان کی تازہ ترین سیاسی صورتحال اور خبریں...',
+        language: 'Urdu (اردو)',
+        country: 'Pakistan',
+        time: '9:00 PM News Bulletin'
+      };
+    }
+
+    // Default / English
+    return {
+      channel: 'BBC News / CNN / Sindh TV English',
+      topic: 'Climate change impact on Indus River and local farming...',
+      language: 'English (US/UK)',
+      country: 'Global / Pakistan',
+      time: '6:00 PM GMT'
+    };
   };
 
   const placeholders = getPlaceholders();
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6 bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800 backdrop-blur-sm">
-      <div className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-6 bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800 backdrop-blur-md shadow-inner">
+      <div className="flex items-center justify-between p-4 bg-red-600/5 border border-red-600/10 rounded-2xl mb-2">
+        <div className="flex items-center gap-3">
+          <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)] ${input.isShortsMode ? 'bg-red-500 animate-pulse' : 'bg-zinc-700'}`}></div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+            {input.isShortsMode ? 'Shorts SEO Engine Active' : 'Standard Video SEO'}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onToggleShorts(!input.isShortsMode)}
+          className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all duration-300 ${
+            input.isShortsMode 
+              ? 'bg-red-600 text-white shadow-xl shadow-red-600/30' 
+              : 'bg-zinc-800 text-zinc-500 border border-zinc-700 hover:border-zinc-500'
+          }`}
+        >
+          {input.isShortsMode ? 'Switch to Long' : 'Switch to Shorts'}
+        </button>
+      </div>
+
+      <div className="space-y-5">
         <div className="relative group">
-          <label className="block text-sm font-medium text-zinc-400 mb-1 flex items-center gap-1">
-            Channel Name
-            <span className="cursor-help text-zinc-600" title="Used to build brand authority and link related videos.">ⓘ</span>
+          <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">
+            Channel Name / Authority
           </label>
           <input
             name="channelName"
             value={input.channelName}
             onChange={onChange}
             required
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+            className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium"
             placeholder={placeholders.channel}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="relative group">
-            <label className="block text-sm font-medium text-zinc-400 mb-1 flex items-center gap-1">
-              User Language
-              <span className="cursor-help text-zinc-600" title="Determines script accuracy (e.g. Sindhi Arabic-style).">ⓘ</span>
+            <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">
+              Input Language
             </label>
             <input
               name="userLanguage"
               value={input.userLanguage}
               onChange={onChange}
               required
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium"
               placeholder={placeholders.language}
             />
           </div>
           <div className="relative group">
-            <label className="block text-sm font-medium text-zinc-400 mb-1 flex items-center gap-1">
-              Video Type
-              <span className="cursor-help text-zinc-600" title="Changes the AI's metadata style (Viral vs Informational).">ⓘ</span>
+            <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">
+              Content Niche
             </label>
             <select
               name="videoType"
               value={input.videoType}
               onChange={onChange}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all appearance-none font-medium"
             >
-              <option value="Education">Education</option>
-              <option value="Vlog">Vlog</option>
-              <option value="Tech">Tech</option>
-              <option value="News">News</option>
-              <option value="Shorts">Shorts</option>
-              <option value="AI">AI</option>
-              <option value="Finance">Finance</option>
-              <option value="Gaming">Gaming</option>
-              <option value="Sports">Sports</option>
+              <option value="News">News / Breaking Bulletin</option>
+              <option value="Shorts">Vertical Shorts Feed</option>
+              <option value="Documentary">Investigation / Docu</option>
+              <option value="Education">Educational / Insight</option>
+              <option value="Vlog">Lifestyle / On-Location</option>
             </select>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="relative group">
-            <label className="block text-sm font-medium text-zinc-400 mb-1 flex items-center gap-1">
-              Target Country
-              <span className="cursor-help text-zinc-600" title="Helps target regional algorithm feeds.">ⓘ</span>
+            <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">
+              Target Territory
             </label>
             <input
               name="targetCountry"
               value={input.targetCountry}
               onChange={onChange}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium"
               placeholder={placeholders.country}
             />
           </div>
           <div className="relative group">
-            <label className="block text-sm font-medium text-zinc-400 mb-1 flex items-center gap-1">
-              Preferred Upload Time
-              <span className="cursor-help text-zinc-600" title="Timing the 'Velocity Spike' is critical for 110% reach.">ⓘ</span>
+            <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">
+              Optimum Upload Window
             </label>
             <input
               name="preferredUploadTime"
               value={input.preferredUploadTime}
               onChange={onChange}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium"
               placeholder={placeholders.time}
             />
           </div>
         </div>
 
         <div className="relative group">
-          <label className="block text-sm font-medium text-zinc-400 mb-1 flex items-center gap-1">
-            Video Content / Topic
-            <span className="cursor-help text-zinc-600" title="The primary topic clusters used to hack recommendations.">ⓘ</span>
+          <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 ml-1">
+            Topic Matrix (Detailed Keywords)
           </label>
           <textarea
             name="userContent"
             value={input.userContent}
             onChange={onChange}
             required
-            rows={4}
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500 transition-all resize-none"
+            rows={5}
+            className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all resize-none placeholder:text-zinc-700 font-medium leading-relaxed"
             placeholder={placeholders.topic}
           />
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-4 pt-2">
         <button
           type="submit"
           disabled={loading}
-          className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all transform active:scale-95 shadow-lg shadow-red-500/20 ${
+          className={`flex-[2] py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all transform active:scale-95 shadow-2xl ${
             loading 
-              ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed' 
-              : 'bg-red-600 hover:bg-red-500 text-white'
+              ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700' 
+              : 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white shadow-red-600/30'
           }`}
         >
-          {loading ? 'Hacking Algorithm...' : 'GENERATE 110% SEO'}
+          {loading ? 'Processing Neural Clusters...' : input.isShortsMode ? 'Inject Viral Metadata' : 'Initiate Full SEO Sequence'}
         </button>
 
         {canGenerateThumbnail && (
@@ -174,13 +200,13 @@ const InputForm: React.FC<InputFormProps> = ({
             type="button"
             onClick={onGenerateThumbnail}
             disabled={loadingImage || loading}
-            className={`flex-1 py-4 rounded-xl font-bold text-lg transition-all transform active:scale-95 shadow-lg ${
+            className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all transform active:scale-95 shadow-xl ${
               loadingImage || loading
-                ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed' 
-                : 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700'
+                ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' 
+                : 'bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700'
             }`}
           >
-            {loadingImage ? 'Creating 8K Image...' : 'GENERATE THUMBNAIL'}
+            {loadingImage ? 'Projecting HDR...' : 'Get Frame'}
           </button>
         )}
       </div>

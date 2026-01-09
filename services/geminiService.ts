@@ -4,78 +4,107 @@ import { SEOInput, SEOPackage } from "../types";
 
 export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   
   const prompt = `
-    Act as a world-class YouTube Viral Growth Hacker and Algorithm Analyst.
-    Your mission is to HACK the YouTube Algorithm (December 2025 update) for 110% reach and instant recommendations.
+    Act as the world's most elite YouTube Algorithm Growth Hacker and Viral Strategist.
+    TODAY'S DATE: ${today}
     
-    INPUT PARAMETERS:
-    - Topic: ${input.userContent}
-    - Language: ${input.userLanguage}
+    TARGET CONTEXT:
     - Channel: ${input.channelName}
-    - Target: ${input.targetCountry}
-    - Video Type: ${input.videoType}
-    - Preferred Upload Time: ${input.preferredUploadTime}
+    - Topic: ${input.userContent}
+    - Mode: ${input.isShortsMode ? 'YouTube Shorts (Vertical)' : 'Long-form Video (16:9)'}
+    
+    DUAL-LANGUAGE SEO PROTOCOL:
+    The user requires the SEO metadata in exactly TWO languages:
+    1. ENGLISH (Primary professional output - Description must be extremely detailed in English)
+    2. ROMAN SINDHI (Sindhi written in Latin/English characters)
 
-    STRICT OUTPUT REQUIREMENTS:
-    1. DESCRIPTION LENGTH: The generated descriptions (English, Native, and Roman) must each be a full, detailed, and SEO-optimized text of approximately 500 words. It should include timestamps, keyword-rich summaries, social links placeholders, and a "bridge" to keep users on the platform.
-    2. HASHTAG COUNT: Provide EXACTLY 10-15 high-velocity hashtags. Do not provide fewer than 10.
-    3. TAGS: Provide tags as a list of 20+ high-relevance comma-separable keywords (comma separated in the UI).
-    4. SCRIPT: If language is Sindhi, use PURE ARABIC-SINDHI script. NO Thai, NO Urdu mix.
-    5. HASHTAG SCORING: For each main hashtag, assign a "Relevance Score" (0-100) and an "Impact Analysis" based on Dec 2025 trends.
-
-    ALGORITHM EXPLOIT STRATEGY (DEC 2025):
-    - VELOCITY SPIKE: Metadata must trigger massive CTR in the first 5 minutes.
-    - SESSION START METRIC: Optimize for "Session Time" which YouTube prioritizes in late 2025.
-
-    THUMBNAIL PROMPT SPECIFICATION:
-    - Quality: 8K, HDR, Professional Ray-tracing, Vivid colors, 16:9.
-
-    110% REACH HACK:
-    Provide a "viralHack110" strategy that explains exactly how to bypass the initial 24-hour review filter.
+    FULL 360-DEGREE SEO PACKAGE REQUIREMENTS:
+    1. REAL-TIME GROUNDING: Use GOOGLE SEARCH to find the latest high-traffic search queries and news related to "${input.userContent}" for today.
+    2. TITLES: Provide 1 catchy English title and 1 high-CTR Roman Sindhi title.
+    3. DESCRIPTION: Provide a 500+ word, keyword-rich English description. Also provide a shorter Roman Sindhi summary.
+    4. TAGS & HASHTAGS: Separate lists for English and Roman Sindhi. Focus on today's viral trends.
+    5. RETENTION HOOKS: Script hooks for the first 30 seconds to maximize audience retention.
+    6. VIDEO CHAPTERS: Strategic timestamps for the video length.
+    7. DAILY ALGO HACKS: Current logic for the December 2025 algorithm update.
+    8. THUMBNAIL VISUALS: Dual-language overlay text and an AI image prompt.
+    
+    OUTPUT JSON FORMAT ONLY. Ensure English descriptions are world-class and Roman Sindhi is natural and easy to read.
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-3-pro-preview",
     contents: prompt,
     config: {
+      tools: [{ googleSearch: {} }],
       responseMimeType: "application/json",
       responseSchema: {
         type: Type.OBJECT,
         properties: {
-          title: { type: Type.STRING },
+          titleEnglish: { type: Type.STRING },
           titleRoman: { type: Type.STRING },
-          descriptionEnglish: { type: Type.STRING, description: "A 500-word SEO optimized description in English" },
-          descriptionNative: { type: Type.STRING, description: "A 500-word SEO optimized description in the native language" },
-          descriptionRoman: { type: Type.STRING, description: "A 500-word romanized description" },
-          hashtags: { type: Type.ARRAY, items: { type: Type.STRING }, minItems: 10 },
-          hashtagScores: {
+          descriptionEnglish: { type: Type.STRING },
+          descriptionRoman: { type: Type.STRING },
+          tagsEnglish: { type: Type.ARRAY, items: { type: Type.STRING } },
+          tagsRoman: { type: Type.ARRAY, items: { type: Type.STRING } },
+          hashtagsEnglish: { type: Type.ARRAY, items: { type: Type.STRING } },
+          hashtagsRoman: { type: Type.ARRAY, items: { type: Type.STRING } },
+          videoChapters: {
             type: Type.ARRAY,
             items: {
               type: Type.OBJECT,
               properties: {
-                tag: { type: Type.STRING },
-                score: { type: Type.NUMBER },
-                impact: { type: Type.STRING }
-              },
-              required: ["tag", "score", "impact"]
-            },
-            minItems: 10
+                timestamp: { type: Type.STRING },
+                title: { type: Type.STRING }
+              }
+            }
           },
-          tagsEnglish: { type: Type.ARRAY, items: { type: Type.STRING } },
-          tagsRoman: { type: Type.ARRAY, items: { type: Type.STRING } },
-          thumbnailTextNative: { type: Type.ARRAY, items: { type: Type.STRING } },
-          thumbnailTextRoman: { type: Type.ARRAY, items: { type: Type.STRING } },
-          thumbnailAIPrompt: { type: Type.STRING },
-          hashtagOptimization: {
+          lsiKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+          retentionHooksEnglish: { type: Type.ARRAY, items: { type: Type.STRING } },
+          retentionHooksRoman: { type: Type.ARRAY, items: { type: Type.STRING } },
+          metadataRecommendations: {
             type: Type.OBJECT,
             properties: {
-              longTailHashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
-              nicheHashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
-              redundancyReport: { type: Type.STRING },
-              suggestedReplacements: { type: Type.ARRAY, items: { type: Type.STRING } }
-            },
-            required: ["longTailHashtags", "nicheHashtags", "redundancyReport", "suggestedReplacements"]
+              category: { type: Type.STRING },
+              location: { type: Type.STRING },
+              recordingDate: { type: Type.STRING },
+              license: { type: Type.STRING }
+            }
+          },
+          thumbnailTextEnglish: { type: Type.ARRAY, items: { type: Type.STRING } },
+          thumbnailTextRoman: { type: Type.ARRAY, items: { type: Type.STRING } },
+          thumbnailAIPrompt: { type: Type.STRING },
+          communityPostEnglish: { type: Type.STRING },
+          communityPostRoman: { type: Type.STRING },
+          dailyAlgoInsights: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                trend: { type: Type.STRING },
+                impact: { type: Type.STRING },
+                hack: { type: Type.STRING }
+              }
+            }
+          },
+          launchRoadmap: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                timeframe: { type: Type.STRING },
+                action: { type: Type.STRING },
+                priority: { type: Type.STRING }
+              }
+            }
+          },
+          outroStrategy: {
+            type: Type.OBJECT,
+            properties: {
+              endScreen: { type: Type.STRING },
+              cards: { type: Type.STRING }
+            }
           },
           algorithmBoostStrategy: {
             type: Type.OBJECT,
@@ -86,14 +115,13 @@ export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> =
               keywordStrategy: { type: Type.STRING },
               engagementBait: { type: Type.STRING },
               viralHack110: { type: Type.STRING }
-            },
-            required: ["bestUploadTime", "abTesting", "pinnedComment", "keywordStrategy", "engagementBait", "viralHack110"]
+            }
           }
         },
         required: [
-          "title", "titleRoman", "descriptionEnglish", "descriptionNative", "descriptionRoman", 
-          "hashtags", "hashtagScores", "tagsEnglish", "tagsRoman", "thumbnailTextNative", "thumbnailTextRoman", 
-          "thumbnailAIPrompt", "hashtagOptimization", "algorithmBoostStrategy"
+          "titleEnglish", "titleRoman", "descriptionEnglish", "descriptionRoman",
+          "tagsEnglish", "tagsRoman", "hashtagsEnglish", "hashtagsRoman",
+          "videoChapters", "retentionHooksEnglish", "dailyAlgoInsights", "thumbnailAIPrompt"
         ]
       }
     }
@@ -102,28 +130,17 @@ export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> =
   try {
     return JSON.parse(response.text) as SEOPackage;
   } catch (error) {
-    console.error("JSON Error:", error);
-    throw new Error("Viral Hack Failed. Retrying logic...");
+    console.error("SEO Extraction Failed:", error);
+    throw new Error("Neural Hack Failed. The SEO package structure was corrupted during transmission.");
   }
 };
 
 export const generateThumbnailImage = async (prompt: string): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
-    contents: {
-      parts: [
-        {
-          text: `8K HDR YOUTUBE THUMBNAIL. ${prompt}. Aspect Ratio 16:9. Vivid professional lighting.`,
-        },
-      ],
-    },
-    config: {
-      imageConfig: {
-        aspectRatio: "16:9"
-      }
-    },
+    contents: { parts: [{ text: `CINEMATIC HIGH-CTR YOUTUBE THUMBNAIL. ${prompt}. High contrast, professional news style.` }] },
+    config: { imageConfig: { aspectRatio: "16:9" } },
   });
 
   for (const part of response.candidates[0].content.parts) {
@@ -131,6 +148,5 @@ export const generateThumbnailImage = async (prompt: string): Promise<string> =>
       return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
     }
   }
-
-  throw new Error("Thumbnail generation failed.");
+  throw new Error("Visual projection failed.");
 };
