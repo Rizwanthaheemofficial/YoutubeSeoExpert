@@ -6,19 +6,13 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
-    // 🔥 REQUIRED FOR VERCEL (fixes blank screen)
     base: './',
+
+    plugins: [react()],
 
     server: {
       port: 3000,
       host: true
-    },
-
-    plugins: [react()],
-
-    define: {
-      'process.env': {}, // prevent process undefined error
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
     },
 
     resolve: {
