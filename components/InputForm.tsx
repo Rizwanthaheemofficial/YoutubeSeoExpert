@@ -130,11 +130,23 @@ const InputForm: React.FC<InputFormProps> = ({
               onChange={onChange}
               className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all appearance-none font-medium"
             >
-              <option value="News">News / Breaking Bulletin</option>
-              <option value="Shorts">Vertical Shorts Feed</option>
-              <option value="Documentary">Investigation / Docu</option>
-              <option value="Education">Educational / Insight</option>
-              <option value="Vlog">Lifestyle / On-Location</option>
+              <optgroup label="Newsroom Categories">
+                <option value="News">General News Bulletin</option>
+                <option value="Breaking">Breaking News Alert</option>
+                <option value="News Package">News Package / Story</option>
+                <option value="Report">Special Report</option>
+                <option value="Current Affair">Current Affair Program</option>
+                <option value="Talk Show">Talk Show / Debate</option>
+                <option value="Entertainment News">Entertainment News</option>
+                <option value="Sports News">Sports News</option>
+              </optgroup>
+              <optgroup label="Other Formats">
+                <option value="Shorts">Vertical Shorts Feed</option>
+                <option value="Documentary">Investigation / Docu</option>
+                <option value="Education">Educational / Insight</option>
+                <option value="Vlog">Lifestyle / On-Location</option>
+                <option value="Live Stream">Live Stream Archive</option>
+              </optgroup>
             </select>
           </div>
         </div>
