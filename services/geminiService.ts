@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { SEOInput, SEOPackage } from "../types";
+import { SEOInput, SEOPackage, GroundingSource } from "../types";
 
 export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -20,9 +20,9 @@ export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> =
     - Format: ${input.isShortsMode ? 'YouTube Shorts (9:16)' : 'Long-form (16:9)'}
 
     METADATA PROTOCOL:
-    1. REAL-TIME GROUNDING: Use Google Search to find current trending search terms for "${input.userContent}" specifically in Pakistan and globally.
+    1. REAL-TIME GROUNDING: Use Google Search to find current trending search terms, news updates, and viewer sentiment for "${input.userContent}" specifically in Pakistan and globally.
     2. TITLES: 
-       - 1 English Title (High CTR, curiousity-driven, news-style).
+       - 1 English Title (High CTR, curiosity-driven, news-style).
        - 1 Roman Sindhi Title (Traditional yet clickable, reflecting local linguistic nuances).
     3. DESCRIPTION: 
        - English: Must be a detailed, multi-paragraph 500+ word professional news summary. Include relevant keywords naturally.
@@ -30,9 +30,9 @@ export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> =
     4. KEYWORDS/TAGS: 
        - English: High-volume professional search terms.
        - Roman Sindhi: Local phonetic search terms used by Sindhi audiences.
-    5. STRATEGY: Provide the "Viral Hack 110" specifically for the December 2025 algorithm update (mentioning retention, shares, and watch time).
+    5. STRATEGY: Provide the "Viral Hack 110" specifically for the December 2025 algorithm update.
     
-    OUTPUT FORMAT: JSON ONLY. Use the provided schema. Ensure English is impeccable and Roman Sindhi is natural.
+    OUTPUT FORMAT: JSON ONLY. Use the provided schema.
   `;
 
   const response = await ai.models.generateContent({
@@ -130,7 +130,24 @@ export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> =
   });
 
   try {
-    return JSON.parse(response.text) as SEOPackage;
+    const result = JSON.parse(response.text) as SEOPackage;
+    
+    // Extract grounding sources
+    const sources: GroundingSource[] = [];
+    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+    if (chunks) {
+      chunks.forEach((chunk: any) => {
+        if (chunk.web) {
+          sources.push({
+            title: chunk.web.title || 'Viral Insight Source',
+            uri: chunk.web.uri
+          });
+        }
+      });
+    }
+    result.groundingSources = sources;
+
+    return result;
   } catch (error) {
     console.error("SEO Extraction Failed:", error);
     throw new Error("Neural Hack Failed. High-authority response was corrupted.");

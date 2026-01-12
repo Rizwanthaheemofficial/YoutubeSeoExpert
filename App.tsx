@@ -112,6 +112,9 @@ ROMAN: ${result.hashtagsRoman.join(' ')}
 [ RETENTION STRATEGY ]
 ${result.algorithmBoostStrategy.viralHack110}
 
+[ VIRAL SOURCES ]
+${result.groundingSources?.map(s => `${s.title}: ${s.uri}`).join('\n') || 'None detected'}
+
 [ LAUNCH ROADMAP ]
 ${result.launchRoadmap.map(s => `${s.timeframe}: ${s.action}`).join('\n')}
 
@@ -305,6 +308,25 @@ HASHTAGS: ${result.hashtagsEnglish.join(' ')}
                          <ResultCard title="Viral Hashtags (EN)" content={result.hashtagsEnglish} isList />
                          <ResultCard title="Viral Hashtags (RS)" content={result.hashtagsRoman} isList />
                       </div>
+                      {result.groundingSources && result.groundingSources.length > 0 && (
+                        <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-[2rem]">
+                          <h3 className="text-[10px] font-black text-red-600 uppercase tracking-[0.3em] mb-4">Viral Trend Sources (Grounding)</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {result.groundingSources.map((source, i) => (
+                              <a 
+                                key={i} 
+                                href={source.uri} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="p-4 bg-black/40 border border-zinc-800 rounded-2xl text-xs text-zinc-400 hover:text-white hover:border-zinc-600 transition-all flex justify-between items-center group"
+                              >
+                                <span className="truncate pr-4">{source.title}</span>
+                                <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 

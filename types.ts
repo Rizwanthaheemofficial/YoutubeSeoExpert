@@ -26,12 +26,17 @@ export interface LaunchStep {
   priority: 'High' | 'Medium' | 'Low';
 }
 
+export interface GroundingSource {
+  title: string;
+  uri: string;
+}
+
 export interface SEOPackage {
   // Dual Language Strategy: English & Roman Sindhi
   titleEnglish: string;
   titleRoman: string;
   
-  descriptionEnglish: string; // User specifically requested description in English
+  descriptionEnglish: string;
   descriptionRoman: string;
   
   tagsEnglish: string[];
@@ -77,4 +82,7 @@ export interface SEOPackage {
     engagementBait: string;
     viralHack110: string;
   };
+
+  // Grounding metadata for deployment transparency
+  groundingSources?: GroundingSource[];
 }
