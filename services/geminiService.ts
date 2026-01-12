@@ -7,30 +7,32 @@ export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> =
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   
   const prompt = `
-    Act as the world's most elite YouTube Algorithm Growth Hacker and Viral Strategist.
-    TODAY'S DATE: ${today}
+    Act as the World's most elite YouTube Algorithm Strategist and Multilingual Copywriter for high-authority News Channels.
+    CURRENT DATE: ${today}
+    
+    MISSION: Generate a professional dual-language SEO package (English & Roman Sindhi).
     
     TARGET CONTEXT:
-    - Channel: ${input.channelName}
-    - Topic: ${input.userContent}
-    - Mode: ${input.isShortsMode ? 'YouTube Shorts (Vertical)' : 'Long-form Video (16:9)'}
-    
-    DUAL-LANGUAGE SEO PROTOCOL:
-    The user requires the SEO metadata in exactly TWO languages:
-    1. ENGLISH (Primary professional output - Description must be extremely detailed in English)
-    2. ROMAN SINDHI (Sindhi written in Latin/English characters)
+    - Channel Name: ${input.channelName}
+    - Territory: ${input.targetCountry}
+    - Niche: ${input.videoType}
+    - Primary Topic: ${input.userContent}
+    - Format: ${input.isShortsMode ? 'YouTube Shorts (9:16)' : 'Long-form (16:9)'}
 
-    FULL 360-DEGREE SEO PACKAGE REQUIREMENTS:
-    1. REAL-TIME GROUNDING: Use GOOGLE SEARCH to find the latest high-traffic search queries and news related to "${input.userContent}" for today.
-    2. TITLES: Provide 1 catchy English title and 1 high-CTR Roman Sindhi title.
-    3. DESCRIPTION: Provide a 500+ word, keyword-rich English description. Also provide a shorter Roman Sindhi summary.
-    4. TAGS & HASHTAGS: Separate lists for English and Roman Sindhi. Focus on today's viral trends.
-    5. RETENTION HOOKS: Script hooks for the first 30 seconds to maximize audience retention.
-    6. VIDEO CHAPTERS: Strategic timestamps for the video length.
-    7. DAILY ALGO HACKS: Current logic for the December 2025 algorithm update.
-    8. THUMBNAIL VISUALS: Dual-language overlay text and an AI image prompt.
+    METADATA PROTOCOL:
+    1. REAL-TIME GROUNDING: Use Google Search to find current trending search terms for "${input.userContent}" specifically in Pakistan and globally.
+    2. TITLES: 
+       - 1 English Title (High CTR, curiousity-driven, news-style).
+       - 1 Roman Sindhi Title (Traditional yet clickable, reflecting local linguistic nuances).
+    3. DESCRIPTION: 
+       - English: Must be a detailed, multi-paragraph 500+ word professional news summary. Include relevant keywords naturally.
+       - Roman Sindhi: A 100-word concise and punchy summary for mobile users.
+    4. KEYWORDS/TAGS: 
+       - English: High-volume professional search terms.
+       - Roman Sindhi: Local phonetic search terms used by Sindhi audiences.
+    5. STRATEGY: Provide the "Viral Hack 110" specifically for the December 2025 algorithm update (mentioning retention, shares, and watch time).
     
-    OUTPUT JSON FORMAT ONLY. Ensure English descriptions are world-class and Roman Sindhi is natural and easy to read.
+    OUTPUT FORMAT: JSON ONLY. Use the provided schema. Ensure English is impeccable and Roman Sindhi is natural.
   `;
 
   const response = await ai.models.generateContent({
@@ -131,7 +133,7 @@ export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> =
     return JSON.parse(response.text) as SEOPackage;
   } catch (error) {
     console.error("SEO Extraction Failed:", error);
-    throw new Error("Neural Hack Failed. The SEO package structure was corrupted during transmission.");
+    throw new Error("Neural Hack Failed. High-authority response was corrupted.");
   }
 };
 
@@ -139,7 +141,7 @@ export const generateThumbnailImage = async (prompt: string): Promise<string> =>
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
-    contents: { parts: [{ text: `CINEMATIC HIGH-CTR YOUTUBE THUMBNAIL. ${prompt}. High contrast, professional news style.` }] },
+    contents: { parts: [{ text: `CINEMATIC HIGH-CONTRAST YOUTUBE THUMBNAIL. ${prompt}. Professional news graphics, clean fonts, hyper-realistic, 4k.` }] },
     config: { imageConfig: { aspectRatio: "16:9" } },
   });
 
