@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SEOInput, SEOPackage } from './types';
 import { generateSEOPackage, generateThumbnailImage } from './services/geminiService';
 import InputForm from './components/InputForm';
@@ -22,8 +22,9 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('metadata');
   const [loading, setLoading] = useState(false);
   const [loadingImage, setLoadingImage] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{message: string, code?: string} | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
+  const [showApiGuide, setShowApiGuide] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -49,7 +50,21 @@ const App: React.FC = () => {
       const data = await generateSEOPackage(input);
       setResult(data);
     } catch (err: any) {
-      setError(err.message || 'Viral system fault.');
+      let msg = "Neural Matrix Fault.";
+      let code = "GENERAL_ERROR";
+
+      if (err.message?.includes('429')) {
+        msg = "Rate Limit Reached (Free Tier). Please wait 60 seconds.";
+        code = "RATE_LIMIT_429";
+      } else if (err.message?.includes('403')) {
+        msg = "API Key Invalid or Region Restricted.";
+        code = "AUTH_FORBIDDEN_403";
+      } else if (err.message?.includes('API_KEY')) {
+        msg = "API Key Missing. Check environment variables.";
+        code = "CONFIG_MISSING";
+      }
+
+      setError({ message: msg, code });
     } finally {
       setLoading(false);
     }
@@ -62,7 +77,7 @@ const App: React.FC = () => {
       const imageUrl = await generateThumbnailImage(result.thumbnailAIPrompt);
       setThumbnailUrl(imageUrl);
     } catch (imgErr: any) {
-      setError("Visual projection offline.");
+      setError({ message: "Visual projection failed. Try again.", code: "IMAGE_GEN_ERR" });
     } finally {
       setLoadingImage(false);
     }
@@ -149,7 +164,13 @@ HASHTAGS: ${result.hashtagsEnglish.join(' ')}
             </div>
           </div>
           
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4">
+            <button 
+              onClick={() => setShowApiGuide(!showApiGuide)}
+              className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:border-zinc-600 transition-all"
+            >
+              System Status
+            </button>
             <div className="px-5 py-2 bg-zinc-900/80 border border-zinc-800 rounded-2xl flex items-center gap-3">
               <div className="flex gap-1">
                 <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse"></span>
@@ -161,6 +182,35 @@ HASHTAGS: ${result.hashtagsEnglish.join(' ')}
           </div>
         </div>
       </header>
+
+      {/* API Deployment Guide Modal */}
+      {showApiGuide && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl space-y-6">
+            <div className="flex justify-between items-start">
+              <h2 className="text-3xl font-black uppercase tracking-tighter">API Matrix Status</h2>
+              <button onClick={() => setShowApiGuide(false)} className="text-zinc-500 hover:text-white">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="space-y-4 text-sm text-zinc-400 leading-relaxed">
+              <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
+                <p className="font-bold text-white mb-1">Free Tier Limitations</p>
+                <p>The Gemini free tier allows up to 15 requests per minute. If you see a "Rate Limit" error, simply wait 60 seconds.</p>
+              </div>
+              <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
+                <p className="font-bold text-white mb-1">Deployment Guide</p>
+                <p>Ensure you have added <code className="text-red-500">API_KEY</code> to your environment variables on Vercel/Netlify. Without it, the "Neural Core" will not initialize.</p>
+              </div>
+              <div className="p-4 bg-red-950/20 rounded-2xl border border-red-900/30">
+                <p className="font-bold text-red-500 mb-1">Region Availability</p>
+                <p>If calls fail consistently, your server region might not support the Gemini API. Check the official Google region list.</p>
+              </div>
+            </div>
+            <button onClick={() => setShowApiGuide(false)} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-red-600/30">Close Diagnostics</button>
+          </div>
+        </div>
+      )}
 
       <main className="max-w-7xl mx-auto px-6 py-12 flex-grow w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
@@ -187,10 +237,15 @@ HASHTAGS: ${result.hashtagsEnglish.join(' ')}
             />
             
             {error && (
-              <div className="p-5 bg-red-950/20 border border-red-500/30 rounded-3xl animate-bounce">
-                <div className="flex items-center gap-3 text-red-500">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <span className="text-[10px] font-black uppercase tracking-widest">{error}</span>
+              <div className="p-5 bg-red-950/20 border border-red-500/30 rounded-3xl animate-in slide-in-from-top-4">
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-3 text-red-500">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{error.message}</span>
+                  </div>
+                  {error.code === "RATE_LIMIT_429" && (
+                    <p className="text-[9px] text-zinc-500 uppercase tracking-widest pl-8 italic">Pro Tip: Free tier allows 15 requests per minute.</p>
+                  )}
                 </div>
               </div>
             )}
