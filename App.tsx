@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SEOInput, SEOPackage } from './types';
 import { generateSEOPackage, generateThumbnailImage } from './services/geminiService';
 import InputForm from './components/InputForm';
@@ -25,6 +25,29 @@ const App: React.FC = () => {
   const [error, setError] = useState<{message: string, code?: string} | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const [showApiGuide, setShowApiGuide] = useState(false);
+  
+  // Cooldown logic for Rate Limits
+  const [cooldown, setCooldown] = useState<number>(0);
+  // Fix: Use ReturnType<typeof setInterval> instead of NodeJS.Timeout to resolve "Cannot find namespace 'NodeJS'" error
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      timerRef.current = setInterval(() => {
+        setCooldown(prev => prev - 1);
+      }, 1000);
+    } else if (cooldown === 0 && timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+      setError(null);
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [cooldown]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -41,6 +64,8 @@ const App: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (cooldown > 0) return;
+
     setLoading(true);
     setError(null);
     setResult(null);
@@ -54,8 +79,9 @@ const App: React.FC = () => {
       let code = "GENERAL_ERROR";
 
       if (err.message?.includes('429')) {
-        msg = "Rate Limit Reached (Free Tier). Please wait 60 seconds.";
+        msg = "Rate Limit Reached (Free Tier). Matrix Recharging...";
         code = "RATE_LIMIT_429";
+        setCooldown(60); // Start 60s cooldown
       } else if (err.message?.includes('403')) {
         msg = "API Key Invalid or Region Restricted.";
         code = "AUTH_FORBIDDEN_403";
@@ -71,13 +97,18 @@ const App: React.FC = () => {
   };
 
   const handleGenerateThumbnail = async () => {
-    if (!result) return;
+    if (!result || cooldown > 0) return;
     setLoadingImage(true);
     try {
       const imageUrl = await generateThumbnailImage(result.thumbnailAIPrompt);
       setThumbnailUrl(imageUrl);
     } catch (imgErr: any) {
-      setError({ message: "Visual projection failed. Try again.", code: "IMAGE_GEN_ERR" });
+      if (imgErr.message?.includes('429')) {
+        setCooldown(60);
+        setError({ message: "Rate limit hit during visual projection. Cooling down.", code: "RATE_LIMIT_429" });
+      } else {
+        setError({ message: "Visual projection failed. Try again.", code: "IMAGE_GEN_ERR" });
+      }
     } finally {
       setLoadingImage(false);
     }
@@ -176,11 +207,12 @@ HASHTAGS: ${result.hashtagsEnglish.join(' ')}
             </button>
             <div className="px-5 py-2 bg-zinc-900/80 border border-zinc-800 rounded-2xl flex items-center gap-3">
               <div className="flex gap-1">
-                <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse"></span>
-                <span className="w-1.5 h-1.5 bg-orange-600 rounded-full animate-pulse delay-75"></span>
-                <span className="w-1.5 h-1.5 bg-yellow-600 rounded-full animate-pulse delay-150"></span>
+                <span className={`w-1.5 h-1.5 rounded-full ${cooldown > 0 ? 'bg-orange-600 animate-pulse' : 'bg-green-600 shadow-[0_0_8px_#16a34a]'}`}></span>
+                <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse delay-75"></span>
               </div>
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Global Trend Sync: Online</span>
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                {cooldown > 0 ? `Matrix Cooldown: ${cooldown}s` : 'Global Trend Sync: Online'}
+              </span>
             </div>
           </div>
         </div>
@@ -199,15 +231,15 @@ HASHTAGS: ${result.hashtagsEnglish.join(' ')}
             <div className="space-y-4 text-sm text-zinc-400 leading-relaxed">
               <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
                 <p className="font-bold text-white mb-1">Free Tier Limitations</p>
-                <p>The Gemini free tier allows up to 15 requests per minute. If you see a "Rate Limit" error, simply wait 60 seconds.</p>
+                <p>The Gemini free tier allows up to 15 requests per minute (RPM). If multiple people use your app at once, this limit is hit quickly.</p>
               </div>
               <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
-                <p className="font-bold text-white mb-1">Deployment Guide</p>
-                <p>Ensure you have added <code className="text-red-500">API_KEY</code> to your environment variables on Vercel/Netlify. Without it, the "Neural Core" will not initialize.</p>
+                <p className="font-bold text-white mb-1">The "Wait 60s" Strategy</p>
+                <p>We've implemented a hard cooldown of 60 seconds when a 429 error occurs. This allows the API quota to reset automatically.</p>
               </div>
               <div className="p-4 bg-red-950/20 rounded-2xl border border-red-900/30">
-                <p className="font-bold text-red-500 mb-1">Region Availability</p>
-                <p>If calls fail consistently, your server region might not support the Gemini API. Check the official Google region list.</p>
+                <p className="font-bold text-red-500 mb-1">Production Tip</p>
+                <p>For high-traffic deployment, consider switching to "Pay-as-you-go" on Google Cloud to remove the 15 RPM cap entirely.</p>
               </div>
             </div>
             <button onClick={() => setShowApiGuide(false)} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-red-600/30">Close Diagnostics</button>
@@ -234,20 +266,35 @@ HASHTAGS: ${result.hashtagsEnglish.join(' ')}
               onToggleShorts={handleToggleShorts}
               onSubmit={handleSubmit} 
               onGenerateThumbnail={handleGenerateThumbnail}
-              loading={loading}
+              loading={loading || cooldown > 0}
               loadingImage={loadingImage}
               canGenerateThumbnail={!!result}
+              cooldownRemaining={cooldown}
             />
             
             {error && (
-              <div className="p-5 bg-red-950/20 border border-red-500/30 rounded-3xl animate-in slide-in-from-top-4">
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-3 text-red-500">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span className="text-[10px] font-black uppercase tracking-widest">{error.message}</span>
+              <div className={`p-5 rounded-3xl animate-in slide-in-from-top-4 border ${error.code === 'RATE_LIMIT_429' ? 'bg-orange-950/20 border-orange-500/30' : 'bg-red-950/20 border-red-500/30'}`}>
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 flex items-center justify-center rounded-full ${error.code === 'RATE_LIMIT_429' ? 'bg-orange-500 text-black' : 'bg-red-500 text-white'}`}>
+                      {error.code === 'RATE_LIMIT_429' ? '!' : 'X'}
+                    </div>
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${error.code === 'RATE_LIMIT_429' ? 'text-orange-500' : 'text-red-500'}`}>
+                      {error.message}
+                    </span>
                   </div>
                   {error.code === "RATE_LIMIT_429" && (
-                    <p className="text-[9px] text-zinc-500 uppercase tracking-widest pl-8 italic">Pro Tip: Free tier allows 15 requests per minute.</p>
+                    <div className="space-y-2">
+                      <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-orange-500 transition-all duration-1000" 
+                          style={{ width: `${(cooldown / 60) * 100}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-[9px] text-zinc-500 uppercase tracking-widest italic">
+                        Cooling down for {cooldown}s. Free tier is restricted to 15 RPM.
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -399,7 +446,13 @@ HASHTAGS: ${result.hashtagsEnglish.join(' ')}
                               </div>
                             )}
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                               <button onClick={handleGenerateThumbnail} className="bg-white text-black px-10 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:scale-110 transition-transform shadow-2xl">Regenerate Frame</button>
+                               <button 
+                                onClick={handleGenerateThumbnail} 
+                                disabled={cooldown > 0 || loadingImage}
+                                className={`bg-white text-black px-10 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:scale-110 transition-transform shadow-2xl ${cooldown > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                               >
+                                 {cooldown > 0 ? `Recharging ${cooldown}s` : 'Regenerate Frame'}
+                               </button>
                             </div>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">

@@ -11,6 +11,7 @@ interface InputFormProps {
   loading: boolean;
   loadingImage: boolean;
   canGenerateThumbnail: boolean;
+  cooldownRemaining?: number;
 }
 
 const InputForm: React.FC<InputFormProps> = ({ 
@@ -21,7 +22,8 @@ const InputForm: React.FC<InputFormProps> = ({
   onGenerateThumbnail, 
   loading, 
   loadingImage,
-  canGenerateThumbnail 
+  canGenerateThumbnail,
+  cooldownRemaining = 0
 }) => {
   
   const getPlaceholders = () => {
@@ -57,7 +59,6 @@ const InputForm: React.FC<InputFormProps> = ({
       };
     }
 
-    // Default / English
     return {
       channel: 'BBC News / CNN / Sindh TV English',
       topic: 'Climate change impact on Indus River and local farming...',
@@ -80,12 +81,13 @@ const InputForm: React.FC<InputFormProps> = ({
         </div>
         <button
           type="button"
+          disabled={cooldownRemaining > 0}
           onClick={() => onToggleShorts(!input.isShortsMode)}
           className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all duration-300 ${
             input.isShortsMode 
               ? 'bg-red-600 text-white shadow-xl shadow-red-600/30' 
               : 'bg-zinc-800 text-zinc-500 border border-zinc-700 hover:border-zinc-500'
-          }`}
+          } ${cooldownRemaining > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
           {input.isShortsMode ? 'Switch to Long' : 'Switch to Shorts'}
         </button>
@@ -101,7 +103,8 @@ const InputForm: React.FC<InputFormProps> = ({
             value={input.channelName}
             onChange={onChange}
             required
-            className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium"
+            disabled={cooldownRemaining > 0}
+            className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium disabled:opacity-50"
             placeholder={placeholders.channel}
           />
         </div>
@@ -116,7 +119,8 @@ const InputForm: React.FC<InputFormProps> = ({
               value={input.userLanguage}
               onChange={onChange}
               required
-              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium"
+              disabled={cooldownRemaining > 0}
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium disabled:opacity-50"
               placeholder={placeholders.language}
             />
           </div>
@@ -128,7 +132,8 @@ const InputForm: React.FC<InputFormProps> = ({
               name="videoType"
               value={input.videoType}
               onChange={onChange}
-              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all appearance-none font-medium"
+              disabled={cooldownRemaining > 0}
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all appearance-none font-medium disabled:opacity-50"
             >
               <optgroup label="Newsroom Categories">
                 <option value="News">General News Bulletin</option>
@@ -160,7 +165,8 @@ const InputForm: React.FC<InputFormProps> = ({
               name="targetCountry"
               value={input.targetCountry}
               onChange={onChange}
-              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium"
+              disabled={cooldownRemaining > 0}
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium disabled:opacity-50"
               placeholder={placeholders.country}
             />
           </div>
@@ -172,7 +178,8 @@ const InputForm: React.FC<InputFormProps> = ({
               name="preferredUploadTime"
               value={input.preferredUploadTime}
               onChange={onChange}
-              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium"
+              disabled={cooldownRemaining > 0}
+              className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all placeholder:text-zinc-700 font-medium disabled:opacity-50"
               placeholder={placeholders.time}
             />
           </div>
@@ -188,7 +195,8 @@ const InputForm: React.FC<InputFormProps> = ({
             onChange={onChange}
             required
             rows={5}
-            className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all resize-none placeholder:text-zinc-700 font-medium leading-relaxed"
+            disabled={cooldownRemaining > 0}
+            className="w-full bg-zinc-950/50 border border-zinc-800 rounded-2xl px-4 py-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent transition-all resize-none placeholder:text-zinc-700 font-medium leading-relaxed disabled:opacity-50"
             placeholder={placeholders.topic}
           />
         </div>
@@ -197,28 +205,28 @@ const InputForm: React.FC<InputFormProps> = ({
       <div className="flex flex-col sm:flex-row gap-4 pt-2">
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || cooldownRemaining > 0}
           className={`flex-[2] py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all transform active:scale-95 shadow-2xl ${
-            loading 
+            loading || cooldownRemaining > 0
               ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed border border-zinc-700' 
               : 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white shadow-red-600/30'
           }`}
         >
-          {loading ? 'Processing Neural Clusters...' : input.isShortsMode ? 'Inject Viral Metadata' : 'Initiate Full SEO Sequence'}
+          {loading ? 'Processing Neural Clusters...' : cooldownRemaining > 0 ? `Matrix Recharging: ${cooldownRemaining}s` : input.isShortsMode ? 'Inject Viral Metadata' : 'Initiate Full SEO Sequence'}
         </button>
 
         {canGenerateThumbnail && (
           <button
             type="button"
             onClick={onGenerateThumbnail}
-            disabled={loadingImage || loading}
+            disabled={loadingImage || loading || cooldownRemaining > 0}
             className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all transform active:scale-95 shadow-xl ${
-              loadingImage || loading
+              loadingImage || loading || cooldownRemaining > 0
                 ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' 
                 : 'bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700'
             }`}
           >
-            {loadingImage ? 'Projecting HDR...' : 'Get Frame'}
+            {loadingImage ? 'Projecting HDR...' : cooldownRemaining > 0 ? 'Wait...' : 'Get Frame'}
           </button>
         )}
       </div>
