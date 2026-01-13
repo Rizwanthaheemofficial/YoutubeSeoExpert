@@ -3,6 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { SEOInput, SEOPackage, GroundingSource } from "../types";
 
 export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> => {
+  // Always use the most up-to-date API key from the environment
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   
@@ -35,8 +36,10 @@ export const generateSEOPackage = async (input: SEOInput): Promise<SEOPackage> =
     OUTPUT FORMAT: JSON ONLY. Use the provided schema.
   `;
 
+  // Switching to gemini-3-flash-preview for much higher RPM (Rate Per Minute) 
+  // than Pro, which helps avoid 429 errors on the free tier.
   const response = await ai.models.generateContent({
-    model: "gemini-3-pro-preview",
+    model: "gemini-3-flash-preview",
     contents: prompt,
     config: {
       tools: [{ googleSearch: {} }],
